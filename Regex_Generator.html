@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Generator</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6b8cae;
+            --success: #4caf50;
+            --info: #2196f3;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .language-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .language-flag {
+            width: 24px;
+            height: 16px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+            border: 1px solid #ddd;
+        }
+        
+        .language-flag:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .language-flag.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 130px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            resize: vertical;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
+        .output-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .language-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 0;
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .language-option label {
+            margin-bottom: 0;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+        
+        .info-box {
+            background-color: #e7f3fe;
+            border-left: 4px solid var(--info);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: var(--info);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .selection-hint {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: -15px;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        #outputText {
+            background-color: #f8f9fa;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-bar">
+            <img src="https://flagcdn.com/w20/de.png" class="language-flag active" data-lang="de" title="Deutsch">
+            <img src="https://flagcdn.com/w20/gb.png" class="language-flag" data-lang="en" title="English">
+            <img src="https://flagcdn.com/w20/fr.png" class="language-flag" data-lang="fr" title="Français">
+            <img src="https://flagcdn.com/w20/ru.png" class="language-flag" data-lang="ru" title="Русский">
+            <img src="https://flagcdn.com/w20/tr.png" class="language-flag" data-lang="tr" title="Türkçe">
+        </div>
+        
+        
+        <div class="info-box">
+            <h5 data-translate="how_it_works">Wie funktioniert's?</h5>
+            <p data-translate="description">Geben Sie einen Beispieltext ein und klicken Sie auf "Regex generieren". Das Tool erkennt automatisch über 20 verschiedene Muster und erstellt passende Regex-Patterns.</p>
+            <p><strong data-translate="tip">Tipp:</strong> <span data-translate="tip_text">Markieren Sie einen Textteil im Eingabefeld, um nur für diesen Abschnitt ein Pattern zu generieren.</span></p>
+        </div>
+        
+        <div class="form-group">
+            <label for="inputText" data-translate="input_label">Geben Sie einen Beispiel-Text ein:</label>
+            <p class="selection-hint" data-translate="selection_hint">(Sie können auch einen Teil des Textes markieren)</p>
+            <textarea id="inputText" data-placeholder="example_text" placeholder="Beispiel: IBAN: DE89 3704 0044 0532 0130 00, Tel: +49 176 12345678, Datum: 12.05.2023"></textarea>
+        </div>
+        
+        <div class="btn-group">
+            <button id="generateBtn" class="btn-primary" data-translate="generate_btn">Regex generieren</button>
+            <button id="copyBtn" class="btn-secondary" data-translate="copy_btn">Pattern kopieren</button>
+            <button id="clearBtn" class="btn-danger" data-translate="clear_btn">Ausgabe leeren</button>
+        </div>
+        
+        <div class="form-group">
+            <label for="outputText" data-translate="output_label">Generiertes Regex-Pattern:</label>
+            <div class="output-container">
+                <div class="language-selector">
+                    <span style="font-weight:600;" data-translate="programming_language">Programmiersprache:</span>
+                    <div class="language-option">
+                        <input type="radio" id="lang-none" name="language" value="none" checked>
+                        <label for="lang-none" data-translate="plain_regex">Nur Regex</label>
+                    </div>
+                    <div class="language-option">
+                        <input type="radio" id="lang-js" name="language" value="javascript">
+                        <label for="lang-js">JavaScript</label>
+                    </div>
+                    <div class="language-option">
+                        <input type="radio" id="lang-py" name="language" value="python">
+                        <label for="lang-py">Python</label>
+                    </div>
+                    <div class="language-option">
+                        <input type="radio" id="lang-java" name="language" value="java">
+                        <label for="lang-java">Java</label>
+                    </div>
+                    <div class="language-option">
+                        <input type="radio" id="lang-csharp" name="language" value="csharp">
+                        <label for="lang-csharp">C#</label>
+                    </div>
+                    <div class="language-option">
+                        <input type="radio" id="lang-php" name="language" value="php">
+                        <label for="lang-php">PHP</label>
+                    </div>
+                    <div class="language-option">
+                        <input type="radio" id="lang-pascal" name="language" value="pascal">
+                        <label for="lang-pascal">Pascal</label>
+                    </div>
+                </div>
+                <textarea id="outputText" class="form-control" readonly></textarea>
+            </div>
+        </div>
+		<span data-translate="copyright">Regex Generator 2023 ©ismail Gül</span>
+    </div>
+    
+    
+    <script>
+        // Übersetzungen
+        const translations = {
+            de: {
+                title: "Regex Generator",
+                how_it_works: "Wie funktioniert's?",
+                description: "Geben Sie einen Beispieltext ein und klicken Sie auf \"Regex generieren\". Das Tool erkennt automatisch über 20 verschiedene Muster und erstellt passende Regex-Patterns.",
+                tip: "Tipp:",
+                tip_text: "Markieren Sie einen Textteil im Eingabefeld, um nur für diesen Abschnitt ein Pattern zu generieren.",
+                input_label: "Geben Sie einen Beispiel-Text ein:",
+                selection_hint: "(Sie können auch einen Teil des Textes markieren)",
+                example_text: "Beispiel: IBAN: DE89 3704 0044 0532 0130 00, Tel: +49 176 12345678, Datum: 12.05.2023",
+                generate_btn: "Regex generieren",
+                copy_btn: "Pattern kopieren",
+                clear_btn: "Ausgabe leeren",
+                output_label: "Generiertes Regex-Pattern:",
+                programming_language: "Programmiersprache:",
+                plain_regex: "Nur Regex",
+                copyright: "Regex Generator 2023 ©ismail Gül",
+                alert_no_text: "Bitte geben Sie einen Text ein oder markieren Sie einen Textteil!"
+            },
+            en: {
+                title: "Regex Generator",
+                how_it_works: "How it works",
+                description: "Enter sample text and click \"Generate Regex\". The tool automatically detects over 20 different patterns and creates matching regex patterns.",
+                tip: "Tip:",
+                tip_text: "Highlight a portion of text in the input field to generate a pattern only for that section.",
+                input_label: "Enter sample text:",
+                selection_hint: "(You can also highlight a portion of the text)",
+                example_text: "Example: IBAN: DE89 3704 0044 0532 0130 00, Phone: +49 176 12345678, Date: 05/12/2023",
+                generate_btn: "Generate Regex",
+                copy_btn: "Copy Pattern",
+                clear_btn: "Clear Output",
+                output_label: "Generated Regex Pattern:",
+                programming_language: "Programming Language:",
+                plain_regex: "Plain Regex",
+                copyright: "Regex Generator 2023 ©ismail Gül",
+                alert_no_text: "Please enter some text or highlight a portion!"
+            },
+            fr: {
+                title: "Générateur Regex",
+                how_it_works: "Comment ça marche",
+                description: "Entrez un texte exemple et cliquez sur \"Générer Regex\". L'outil détecte automatiquement plus de 20 motifs différents et crée des motifs regex correspondants.",
+                tip: "Astuce:",
+                tip_text: "Surlignez une partie du texte dans le champ de saisie pour générer un motif uniquement pour cette section.",
+                input_label: "Entrez un texte exemple:",
+                selection_hint: "(Vous pouvez également surligner une partie du texte)",
+                example_text: "Exemple: IBAN: FR76 3000 6000 0112 3456 7890 189, Tél: +33 6 12 34 56 78, Date: 12/05/2023",
+                generate_btn: "Générer Regex",
+                copy_btn: "Copier le motif",
+                clear_btn: "Effacer la sortie",
+                output_label: "Motif Regex généré:",
+                programming_language: "Langage de programmation:",
+                plain_regex: "Regex simple",
+                copyright: "Générateur Regex &copy; 2023 ©ismail Gül",
+                alert_no_text: "Veuillez entrer du texte ou surligner une partie!"
+            },
+            ru: {
+                title: "Regex Generator",
+                how_it_works: "Как это работает",
+                description: "Введите пример текста и нажмите \"Сгенерировать Regex\". Инструмент автоматически распознает более 20 различных шаблонов и создает соответствующие regex-выражения.",
+                tip: "Совет:",
+                tip_text: "Выделите часть текста в поле ввода, чтобы сгенерировать шаблон только для этого раздела.",
+                input_label: "Введите пример текста:",
+                selection_hint: "(Вы также можете выделить часть текста)",
+                example_text: "Пример: IBAN: RU02 4455 6677 8899 0011 2345 678, Телефон: +7 912 345-67-89, Дата: 12.05.2023",
+                generate_btn: "Сгенерировать Regex",
+                copy_btn: "Копировать шаблон",
+                clear_btn: "Очистить вывод",
+                output_label: "Сгенерированный Regex:",
+                programming_language: "Язык программирования:",
+                plain_regex: "Только Regex",
+                copyright: "Regex Generator 2023 ©ismail Gül",
+                alert_no_text: "Пожалуйста, введите текст или выделите часть текста!"
+            },
+            tr: {
+                title: "Regex Generator",
+                how_it_works: "Nasıl Çalışır",
+                description: "Örnek metin girin ve \"Regex Oluştur\"a tıklayın. Araç otomatik olarak 20'den fazla farklı deseni tanır ve eşleşen regex desenleri oluşturur.",
+                tip: "İpucu:",
+                tip_text: "Yalnızca belirli bir bölüm için desen oluşturmak üzere giriş alanındaki metnin bir bölümünü vurgulayın.",
+                input_label: "Örnek metin girin:",
+                selection_hint: "(Metnin bir bölümünü de vurgulayabilirsiniz)",
+                example_text: "Örnek: IBAN: TR33 0006 1005 1978 6457 8413 26, Telefon: +90 555 123 45 67, Tarih: 12.05.2023",
+                generate_btn: "Regex Oluştur",
+                copy_btn: "Deseni Kopyala",
+                clear_btn: "Çıktıyı Temizle",
+                output_label: "Oluşturulan Regex Deseni:",
+                programming_language: "Programlama Dili:",
+                plain_regex: "Sadece Regex",
+                copyright: "Regex Generator 2023 ©ismail Gül",
+                alert_no_text: "Lütfen bir metin girin veya bir bölümü vurgulayın!"
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sprachauswahl
+            const flags = document.querySelectorAll('.language-flag');
+            flags.forEach(flag => {
+                flag.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    setLanguage(lang);
+                    
+                    // Active state aktualisieren
+                    flags.forEach(f => f.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Standardsprache setzen
+            setLanguage('de');
+            
+            function setLanguage(lang) {
+                // Texte aktualisieren
+                document.querySelectorAll('[data-translate]').forEach(el => {
+                    const key = el.dataset.translate;
+                    if (translations[lang] && translations[lang][key]) {
+                        el.textContent = translations[lang][key];
+                    }
+                });
+                
+                // Platzhalter aktualisieren
+                const inputText = document.getElementById('inputText');
+                if (translations[lang] && translations[lang]['example_text']) {
+                    inputText.placeholder = translations[lang]['example_text'];
+                }
+            }
+            
+            function getTranslation(key) {
+                const lang = document.querySelector('.language-flag.active').dataset.lang;
+                return translations[lang]?.[key] || key;
+            }
+            
+            // Regex-Generator Funktionen
+            const generateBtn = document.getElementById('generateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const inputText = document.getElementById('inputText');
+            const outputText = document.getElementById('outputText');
+            
+            generateBtn.addEventListener('click', generateRegex);
+            copyBtn.addEventListener('click', copyPattern);
+            clearBtn.addEventListener('click', clearOutput);
+            
+            function generateRegex() {
+                outputText.value = '';
+                
+                let text = '';
+                const selectedText = getSelectedText();
+                
+                if (selectedText) {
+                    text = selectedText;
+                } else {
+                    text = inputText.value;
+                }
+                
+                text = text.trim();
+                
+                if (!text) {
+                    alert(getTranslation('alert_no_text'));
+                    return;
+                }
+                
+                processText(text);
+            }
+            
+            function getSelectedText() {
+                if (inputText.selectionStart !== inputText.selectionEnd) {
+                    return inputText.value.substring(
+                        inputText.selectionStart, 
+                        inputText.selectionEnd
+                    );
+                }
+                
+                const selection = window.getSelection();
+                if (selection.toString().trim() !== '' && 
+                    inputText.contains(selection.anchorNode)) {
+                    return selection.toString();
+                }
+                
+                return null;
+            }
+            
+            function processText(text) {
+                const parts = splitText(text);
+                const groupCounts = {};
+                const selectedLanguage = document.querySelector('input[name="language"]:checked').value;
+                
+                let regexPattern = '';
+                
+                parts.forEach(part => {
+                    const pattern = detectPattern(part);
+                    const groupName = getGroupName(pattern);
+                    
+                    let finalPattern = pattern;
+                    if (groupName) {
+                        if (groupCounts[groupName]) {
+                            groupCounts[groupName]++;
+                            finalPattern = pattern.replace(
+                                `?<${groupName}>`, 
+                                `?<${groupName}${groupCounts[groupName]}>`
+                            );
+                        } else {
+                            groupCounts[groupName] = 1;
+                        }
+                    }
+                    
+                    regexPattern += finalPattern + ' ';
+                });
+                
+                const formattedPattern = formatForLanguage(regexPattern.trim(), selectedLanguage);
+                outputText.value = formattedPattern;
+            }
+            
+            function detectPattern(part) {
+                // IBAN (DE + 20 Ziffern/Buchstaben)
+                if (/^DE\d{2}[ ]?([0-9a-zA-Z]{4}[ ]?){4}[0-9a-zA-Z]{2}$/.test(part))
+                    return `(?<IBAN>DE\\d{2}[ ]?([0-9a-zA-Z]{4}[ ]?){4}[0-9a-zA-Z]{2})`;
+                
+                // BIC/SWIFT (8-11 alphanumerische Zeichen)
+                if (/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(part))
+                    return `(?<BIC>[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?)`;
+                
+                // Deutsche Telefonnummern
+                if (/^(\+49|0)[1-9][0-9]{3,14}$/.test(part.replace(/[\-\s]/g, '')))
+                    return `(?<Telefon>(\\+49|0)[1-9][0-9]{3,14})`;
+                
+                // URL-Erkennung (mit korrigiertem \w\-)
+                if (/^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\- .\/?%&=]*)?$/.test(part))
+                    return `(?<URL>(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[\\w\\- .\\/?%&=]*)?)`;
+                
+                // IPv4-Adresse
+                if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(part))
+                    return `(?<IPv4>(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))`;
+                
+                // MAC-Adresse
+                if (/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(part))
+                    return `(?<MAC>([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2}))`;
+                
+                // UUID
+                if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(part))
+                    return `(?<UUID>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})`;
+                
+                // Original-Muster
+                if (/^\d{2}\.\d{2}\.\d{4}$/.test(part)) 
+                    return `(?<Datum>\\d{2}\\.\\d{2}\\.\\d{4})`;
+                
+                if (/^\d+\/\d+$/.test(part))
+                    return `(?<ID>\\d+\\/\\d+)`;
+                
+                if (/^\d{1,3}(\.\d{3})*,\d{2}$/.test(part))
+                    return `(?<Betrag>\\d{1,3}(\\.\\d{3})*,\\d{2})`;
+                
+                if (/^\d{1,4}(?:\.\d+)?(?:,\d+)?\s*x\s*\d{1,4}(?:\.\d+)?(?:,\d+)?\s*x\s*\d{1,4}(?:\.\d+)?(?:,\d+)?\s*$/.test(part))
+                    return `(?<Maese>\\d{1,4}(?:\\.\\d+)?(?:,\\d+)?\\s*x\\s*\\d{1,4}(?:\\.\\d+)?(?:,\\d+)?\\s*x\\s*\\d{1,4}(?:\\.\\d+)?(?:,\\d+)?\\s*)`;
+                
+                if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(part))
+                    return `(?<Email>[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})`;
+                
+                if (/^\d+\.$/.test(part))
+                    return `(?<PosMitPunkt>\\d+)\\.`;
+                
+                if (/^\d+$/.test(part))
+                    return `(?<Zahlen>\\d+)`;
+                
+                if (/^[a-zA-Z]+$/.test(part))
+                    return `(?<Buchstaben>[a-zA-Z]+)`;
+                
+                if (/^[a-zA-Z0-9]+$/.test(part))
+                    return `(?<Alphanumerisch>[a-zA-Z0-9]+)`;
+                
+                return `(?<Unbekannt>\\S+)`;
+            }
+            
+            function formatForLanguage(pattern, language) {
+                switch(language) {
+                    case 'none':
+                        return pattern;
+                    case 'javascript':
+                        return `const regex = /${pattern}/;`;
+                    case 'python':
+                        return `import re\nregex = re.compile(r"${pattern}")`;
+                    case 'java':
+                        return `import java.util.regex.*;\nPattern regex = Pattern.compile("${pattern}");`;
+                    case 'csharp':
+                        return `using System.Text.RegularExpressions;\nRegex regex = new Regex(@"${pattern}");`;
+                    case 'php':
+                        return `$regex = '/${pattern}/';`;
+                    case 'pascal':
+                        return `var\n  regex: TRegEx;\nbegin\n  regex := TRegEx.Create('${pattern}');\nend;`;
+                    default:
+                        return pattern;                }
+            }
+            
+            function splitText(text) {
+                const regex = /\d{1,4}(?:[.,]\d+)?(?:\s*x\s*\d{1,4}(?:[.,]\d+)?){2}|\S+/g;
+                return text.match(regex) || [];
+            }
+            
+            function getGroupName(pattern) {
+                const match = pattern.match(/\?<([a-zA-Z]+)>/);
+                return match ? match[1] : null;
+            }
+            
+            function copyPattern() {
+                const text = outputText.value.trim();
+                
+                if (!text) {
+                    alert(getTranslation('alert_no_text'));
+                    return;
+                }
+                
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        copyBtn.textContent = getTranslation('copied_text');
+                        setTimeout(() => {
+                            copyBtn.textContent = getTranslation('copy_btn');
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Fehler beim Kopieren: ', err);
+                        alert(getTranslation('copy_error'));
+                    });
+            }
+            
+            function clearOutput() {
+                outputText.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
